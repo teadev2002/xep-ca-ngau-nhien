@@ -278,7 +278,7 @@ function App() {
   return (
     <>
       <h1 className="read-the-docs">
-        Đổi ca trực tự động
+         <strong>Trung đội cơ động 2 </strong> 
       </h1>
       <div className="d-flex justify-content-center mb-3" style={{gap: 8}}>
         <button className="btn-random" onClick={handleRandomize}>
