@@ -90,8 +90,22 @@ function generateSchedule2Weeks() {
   }
   return schedule;
 }
-
+function useMobileLandscapeAlert() {
+  useEffect(() => {
+    function checkMobileAndOrientation() {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isPortrait = window.innerHeight > window.innerWidth;
+      if (isMobile && isPortrait) {
+        alert('Vui lòng xoay ngang màn hình để xem bảng trực rõ hơn!');
+      }
+    }
+    checkMobileAndOrientation();
+    window.addEventListener('resize', checkMobileAndOrientation);
+    return () => window.removeEventListener('resize', checkMobileAndOrientation);
+  }, []);
+}
 function App() {
+    useMobileLandscapeAlert();
   // Đọc lịch từ localStorage nếu có, nếu không thì tạo mới
   const getSavedSchedule = () => {
     try {
