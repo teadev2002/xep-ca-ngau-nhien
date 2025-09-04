@@ -45,7 +45,7 @@
 }
  
 .btn-random {
-  background-color: #007bff;
+  background-color: #ffc107;
   color: #fff;
   border: none;
   margin-right: 8px;
@@ -55,7 +55,7 @@
   transition: background 0.2s;
 }
 .btn-random:hover {
-  background-color: #0056b3;
+  background-color: #b39800;
 }
 
 .btn-export {
@@ -71,7 +71,7 @@
   background-color: #1e7e34;
 }
 .btn-leader {
-  background-color: #ffc107;
+  background-color: #007bff;
   color: #000;
   border: none;
   margin-left: 8px;
@@ -81,5 +81,5 @@
   transition: background 0.2s;
 }
 .btn-leader:hover {
-  background-color: #e0a800;
+  background-color: #003ce0;
 }

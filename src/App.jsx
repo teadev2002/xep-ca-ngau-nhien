@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import './App.css'
 import namblue from './assets/img/namblue.png'
+import { Image } from 'antd';
 const thanhVien = [
   "Đức Quy", "Thế Anh", "Trung Hiếu", "Minh Thuận", "Duy Nam",
   "Hải Quân", "Xuân Trường", "Gia Huy", "Thành Công", "Tuấn Tú", "Anh Khoa",
@@ -167,7 +168,7 @@ function App() {
 
   return (
     <>
-      <div >
+      <div>
         <div>
           <h1 className="read-the-docs">
             <strong>Trung đội cơ động 2</strong>
@@ -184,7 +185,6 @@ function App() {
             </button>
           </div>
         </div>
-         
       </div>
 
       {/* Hiển thị modal hoặc popup Trung đội trưởng */}
@@ -205,17 +205,24 @@ function App() {
             style={{
               background: '#fff',
               padding: 32,
-            
               minWidth: 280,
               boxShadow: '0 4px 24px #0002',
               textAlign: 'center',
-              position: 'relative'
+              position: 'relative',
+              borderRadius: 12
             }}
             onClick={e => e.stopPropagation()}
           >
-            <img src={namblue} alt="Trung đội trưởng" length="100" height= "100"  style={{  marginBottom: 16 }} />
+            <Image
+              src={namblue}
+              alt="Trung đội trưởng"
+              width={120}
+              height={120}
+              style={{ borderRadius: '50%', marginBottom: 16, objectFit: 'cover', boxShadow: '0 2px 8px #aaa' }}
+              preview={true}
+            />
             <h3 style={{ margin: 0, marginBottom: 8 }}>Trung đội trưởng</h3>
-            <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}> Nam Blue</div>
+            <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Nam Blue</div>
             <div style={{ color: '#555', fontSize: 15, marginBottom: 16 }}>SĐT: 0336662425</div>
             <button
               style={{
@@ -234,7 +241,7 @@ function App() {
           </div>
         </div>
       )}
- {/* Hiển thị modal hoặc popup Trung đội trưởng */}
+
       <div className="table-container">
         <table className="shift-table">
           <thead>
