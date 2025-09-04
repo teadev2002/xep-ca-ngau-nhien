@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import './App.css'
-
+import namblue from './assets/img/namblue.png'
 const thanhVien = [
   "Đức Quy", "Thế Anh", "Trung Hiếu", "Minh Thuận", "Duy Nam",
   "Hải Quân", "Xuân Trường", "Gia Huy", "Thành Công", "Tuấn Tú", "Anh Khoa",
@@ -105,7 +105,8 @@ function useMobileLandscapeAlert() {
   }, []);
 }
 function App() {
-    useMobileLandscapeAlert();
+  useMobileLandscapeAlert();
+
   // Đọc lịch từ localStorage nếu có, nếu không thì tạo mới
   const getSavedSchedule = () => {
     try {
@@ -157,19 +158,83 @@ function App() {
     XLSX.writeFile(wb, 'lich_truc.xlsx');
   };
 
+  //` Modal Trung đội trưởng
+
+  const [showLeader, setShowLeader] = useState(false);
+
+  const handleShowLeader = () => setShowLeader(true);
+  const handleHideLeader = () => setShowLeader(false);
+
   return (
     <>
-      <h1 className="read-the-docs">
-        <strong>Trung đội cơ động 2</strong>
-      </h1>
-      <div className="d-flex justify-content-center mb-3" style={{ gap: 8 }}>
-        <button className="btn-random" onClick={handleRandomize}>
-          Sắp xếp ca trực ngẫu nhiên
-        </button>
-        <button className="btn-export" onClick={handleExportExcel}>
-          Xuất Excel
-        </button>
+      <div >
+        <div>
+          <h1 className="read-the-docs">
+            <strong>Trung đội cơ động 2</strong>
+          </h1>
+          <div className="d-flex justify-content-center mb-3" style={{ gap: 8 }}>
+            <button className="btn-random" onClick={handleRandomize}>
+              Sắp xếp ca trực ngẫu nhiên
+            </button>
+            <button className="btn-export" onClick={handleExportExcel}>
+              Xuất Excel
+            </button>
+            <button className="btn-leader" onClick={handleShowLeader}>
+              Trung đội trưởng
+            </button>
+          </div>
+        </div>
+         
       </div>
+
+      {/* Hiển thị modal hoặc popup Trung đội trưởng */}
+      {showLeader && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.3)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onClick={handleHideLeader}
+        >
+          <div
+            style={{
+              background: '#fff',
+              padding: 32,
+            
+              minWidth: 280,
+              boxShadow: '0 4px 24px #0002',
+              textAlign: 'center',
+              position: 'relative'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <img src={namblue} alt="Trung đội trưởng"  style={{  marginBottom: 16 }} />
+            <h3 style={{ margin: 0, marginBottom: 8 }}>Trung đội trưởng</h3>
+            <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}> Nam Blue</div>
+            <div style={{ color: '#555', fontSize: 15, marginBottom: 16 }}>SĐT: 0336662425</div>
+            <button
+              style={{
+                background: '#007bff',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 4,
+                padding: '6px 18px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+              onClick={handleHideLeader}
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+ {/* Hiển thị modal hoặc popup Trung đội trưởng */}
       <div className="table-container">
         <table className="shift-table">
           <thead>
@@ -198,13 +263,13 @@ function App() {
           </tbody>
         </table>
       </div>
-      <br /> <br /> <br /> <br />  
+      <br /> <br /> <br /> <br />
       <div>
         <footer>
           <hr />
           <p style={{ textAlign: 'center', fontSize: 12, color: '#666' }}>
-            &copy; 2025 - Bản quyền thuộc về: &nbsp; 
-             <a href="https://www.facebook.com/theanh24.it" target="_blank" rel="noopener noreferrer">Thế Anh</a>
+            &copy; 2025 - Bản quyền thuộc về: &nbsp;
+            <a href="https://www.facebook.com/theanh24.it" target="_blank" rel="noopener noreferrer">Thế Anh</a>
           </p>
         </footer>
       </div>
