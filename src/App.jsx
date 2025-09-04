@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import './App.css'
 
-const nhom1 = [
+const thanhVien = [
   "Đức Quy", "Thế Anh", "Trung Hiếu", "Minh Thuận", "Duy Nam",
-  "Hải Quân", "Xuân Trường", "Gia Huy", "Thành Công", "Tuấn Tú", "Anh Khoa"
-];
-const nhom2 = [
+  "Hải Quân", "Xuân Trường", "Gia Huy", "Thành Công", "Tuấn Tú", "Anh Khoa",
   "Công Lý", "Tấn Lộc", "Hoàng Phúc", "Trung Anh", "Minh Tú",
   "Thanh Phong", "Văn Lợi", "Minh Đức", "Minh Hiếu", "Đức Chung",
   "Thanh Hậu", "Tấn Đạt", "Hiền Minh"
@@ -16,7 +14,7 @@ const nhom2 = [
 function getMonday(d = new Date()) {
   const date = new Date(d);
   const day = date.getDay();
-  const diff = day === 0 ? -6 : 1 - day; // Nếu chủ nhật thì lùi 6 ngày, còn lại lùi về thứ 2
+  const diff = day === 0 ? -6 : 1 - day;
   date.setDate(date.getDate() + diff);
   return date;
 }
@@ -56,173 +54,40 @@ function shuffle(array) {
   return arr;
 }
 
-// Lấy danh sách blacklist từ localStorage (những người đã từng trực 3 ca)
-function getBlacklist(key) {
-  try {
-    const data = localStorage.getItem(key);
-    if (data) return JSON.parse(data);
-  } catch {}
-  return [];
-}
+// Sinh lịch trực cho 2 tuần, mỗi tuần 12 người xen kẽ, mỗi ngày random ca trực không lặp lại
+function generateSchedule2Weeks() {
+  const now = new Date();
+  const firstMonday = getMonday(new Date(now.getFullYear(), 0, 1));
+  const weekNum = Math.floor((monday - firstMonday) / (7 * 24 * 60 * 60 * 1000));
+  let groupA = [];
+  let groupB = [];
+  if (localStorage.getItem('lich_truc_groupA') && localStorage.getItem('lich_truc_groupB')) {
+    groupA = JSON.parse(localStorage.getItem('lich_truc_groupA'));
+    groupB = JSON.parse(localStorage.getItem('lich_truc_groupB'));
+  } else {
+    const shuffled = shuffle(thanhVien);
+    groupA = shuffled.slice(0, 12);
+    groupB = shuffled.slice(12, 24);
+    localStorage.setItem('lich_truc_groupA', JSON.stringify(groupA));
+    localStorage.setItem('lich_truc_groupB', JSON.stringify(groupB));
+  }
 
-// Lưu blacklist vào localStorage
-function saveBlacklist(key, arr) {
-  localStorage.setItem(key, JSON.stringify(arr));
-}
-
-// Hàm xếp ca tự động, có random, mỗi người chỉ trực 1 ca/ngày
-function generateScheduleRandom() {
-  // Lấy blacklist tuần trước
-  const blacklist1 = getBlacklist('blacklist1');
-  const blacklist2 = getBlacklist('blacklist2');
-
-  // Đếm số ca đã phân cho mỗi người trong tuần
-  const count1 = Object.fromEntries(nhom1.map(n => [n, 0]));
-  const count2 = Object.fromEntries(nhom2.map(n => [n, 0]));
-  count1["Tuấn Tú"] = 0;
-  count1["Gia Huy"] = 0;
-
-  // Kết quả: [ca][ngày] = [người nhóm 1, người nhóm 2]
+  const evenWeek = weekNum % 2 === 0;
+  // Mỗi ca 3 người
   const schedule = Array.from({ length: caTimes.length }, () =>
-    Array.from({ length: days.length }, () => ["", ""])
+    Array.from({ length: days.length }, () => ["", "", ""])
   );
 
-  // Lưu lại ai đã trực trong ngày đó
   for (let d = 0; d < days.length; d++) {
-    let available1 = nhom1.filter(n => !blacklist1.includes(n));
-    let available2 = nhom2.filter(n => !blacklist2.includes(n));
-    available1 = shuffle(available1);
-    available2 = shuffle(available2);
-    let used1 = new Set();
-    let used2 = new Set();
-
-    for (let c = 0; c < 3; c++) {
-      let n1 = available1.find(
-        n =>
-          !used1.has(n) &&
-          ((n === "Tuấn Tú" || n === "Gia Huy") ? count1[n] < 4 : count1[n] < 2)
-      );
-      if (!n1) {
-        n1 = nhom1.find(
-          n =>
-            !used1.has(n) &&
-            ((n === "Tuấn Tú" || n === "Gia Huy") ? count1[n] < 4 : count1[n] < 2)
-        );
-      }
-      if (!n1) n1 = "";
-      used1.add(n1);
-      count1[n1] = (count1[n1] || 0) + 1;
-
-      let n2 = available2.find(n => !used2.has(n) && count2[n] < 2);
-      if (!n2) {
-        n2 = nhom2.find(n => !used2.has(n) && count2[n] < 2);
-      }
-      if (!n2) n2 = "";
-      used2.add(n2);
-      count2[n2] = (count2[n2] || 0) + 1;
-
-      schedule[c][d] = [n1, n2];
-    }
-
-    // Ca 4: Tuấn Tú hoặc Gia Huy (tăng ca), vẫn đảm bảo không trùng trong ngày
-    let n1 = d % 2 === 0 ? "Tuấn Tú" : "Gia Huy";
-    if (!used1.has(n1) && count1[n1] < 4) {
-      used1.add(n1);
-      count1[n1]++;
-    } else {
-      n1 = n1 === "Tuấn Tú" ? "Gia Huy" : "Tuấn Tú";
-      if (!used1.has(n1) && count1[n1] < 4) {
-        used1.add(n1);
-        count1[n1]++;
-      } else {
-        n1 = nhom1.find(
-          n =>
-            !used1.has(n) &&
-            ((n === "Tuấn Tú" || n === "Gia Huy") ? count1[n] < 4 : count1[n] < 2)
-        ) || "";
-        if (n1) {
-          used1.add(n1);
-          count1[n1]++;
-        }
-      }
-    }
-
-    let n2 = available2.find(n => !used2.has(n) && count2[n] < 2);
-    if (!n2) {
-      n2 = nhom2.find(n => !used2.has(n) && count2[n] < 2);
-    }
-    if (!n2) n2 = "";
-    if (n2) {
-      used2.add(n2);
-      count2[n2]++;
-    }
-    schedule[3][d] = [n1, n2];
-  }
-
-  // Sau khi xếp xong, kiểm tra ai bị thiếu ca (chỉ có 1 ca hoặc 0 ca)
-  // và ai bị dư ca (chỉ có 1 ca trống trong lịch)
-  // Đếm số ca đã phân
-  let needFill1 = [];
-  let needFill2 = [];
-  let fillCount1 = 0, fillCount2 = 0;
-
-  // Tìm số ca thiếu của mỗi nhóm
-  let total1 = Object.values(count1).reduce((a, b) => a + b, 0);
-  let total2 = Object.values(count2).reduce((a, b) => a + b, 0);
-  let missing1 = days.length * caTimes.length - total1;
-  let missing2 = days.length * caTimes.length - total2;
-
-  // Chọn random những người có 2 ca để lấp vào ca thiếu
-  if (missing1 > 0) {
-    let canFill1 = nhom1.filter(n => count1[n] === 2 && n !== "Tuấn Tú" && n !== "Gia Huy");
-    canFill1 = shuffle(canFill1).slice(0, missing1);
-    canFill1.forEach(n => count1[n]++);
-    needFill1 = canFill1;
-  }
-  if (missing2 > 0) {
-    let canFill2 = nhom2.filter(n => count2[n] === 2);
-    canFill2 = shuffle(canFill2).slice(0, missing2);
-    canFill2.forEach(n => count2[n]++);
-    needFill2 = canFill2;
-  }
-
-  // Lấp ca thiếu vào lịch
-  for (let c = 0; c < caTimes.length; c++) {
-    for (let d = 0; d < days.length; d++) {
-      // Nhóm 1
-      if (!schedule[c][d][0]) {
-        let n = needFill1[fillCount1++];
-        // Nếu vẫn thiếu, chọn bất kỳ ai chưa trực ca đó trong ngày
-        if (!n) {
-          // Ưu tiên người có 2 ca, chưa trực trong ngày đó
-          let usedInDay = new Set(schedule.map(row => row[d][0]));
-          n = nhom1.find(
-            x => !usedInDay.has(x) && ((x === "Tuấn Tú" || x === "Gia Huy") ? count1[x] < 4 : count1[x] < 3)
-          );
-          // Nếu vẫn không có, chọn bất kỳ ai
-          if (!n) n = nhom1.find(x => !usedInDay.has(x));
-        }
-        schedule[c][d][0] = n || "";
-      }
-      // Nhóm 2
-      if (!schedule[c][d][1]) {
-        let n = needFill2[fillCount2++];
-        if (!n) {
-          let usedInDay = new Set(schedule.map(row => row[d][1]));
-          n = nhom2.find(
-            x => !usedInDay.has(x) && count2[x] < 3
-          );
-          if (!n) n = nhom2.find(x => !usedInDay.has(x));
-        }
-        schedule[c][d][1] = n || "";
-      }
+    const todayGroup = (evenWeek ? (d % 2 === 0 ? groupA : groupB) : (d % 2 === 0 ? groupB : groupA));
+    // Random lại thứ tự thành viên mỗi ngày để chia ca ngẫu nhiên, không lặp lại trong ngày
+    const todayMembers = shuffle(todayGroup);
+    for (let c = 0; c < caTimes.length; c++) {
+      schedule[c][d][0] = todayMembers[c * 3] || "";
+      schedule[c][d][1] = todayMembers[c * 3 + 1] || "";
+      schedule[c][d][2] = todayMembers[c * 3 + 2] || "";
     }
   }
-
-  // Lưu vào localStorage để tuần sau không bị lặp lại
-  saveBlacklist('blacklist1', needFill1);
-  saveBlacklist('blacklist2', needFill2);
-
   return schedule;
 }
 
@@ -238,7 +103,7 @@ function App() {
 
   const [schedule, setSchedule] = useState(() => {
     const saved = getSavedSchedule();
-    return saved || generateScheduleRandom();
+    return saved || generateSchedule2Weeks();
   });
 
   // Khi lần đầu load, nếu chưa có lịch thì lưu lại
@@ -251,7 +116,10 @@ function App() {
 
   // Khi random lại thì lưu lịch mới vào localStorage
   const handleRandomize = () => {
-    const newSchedule = generateScheduleRandom();
+    // Xóa nhóm cũ để random lại nhóm mới cho 2 tuần tiếp theo
+    localStorage.removeItem('lich_truc_groupA');
+    localStorage.removeItem('lich_truc_groupB');
+    const newSchedule = generateSchedule2Weeks();
     setSchedule(newSchedule);
     localStorage.setItem('lich_truc_schedule', JSON.stringify(newSchedule));
   };
@@ -265,7 +133,7 @@ function App() {
       `Ca ${caIdx + 1}`,
       ca,
       ...days.map((_, dayIdx) =>
-        `- ${schedule[caIdx][dayIdx][0]}\n- ${schedule[caIdx][dayIdx][1]}`
+        `- ${schedule[caIdx][dayIdx][0]}\n- ${schedule[caIdx][dayIdx][1]}\n- ${schedule[caIdx][dayIdx][2]}`
       )
     ]);
     const wsData = [...header, ...rows];
@@ -278,9 +146,9 @@ function App() {
   return (
     <>
       <h1 className="read-the-docs">
-         <strong>Trung đội cơ động 2 </strong> 
+        <strong>Trung đội cơ động 2</strong>
       </h1>
-      <div className="d-flex justify-content-center mb-3" style={{gap: 8}}>
+      <div className="d-flex justify-content-center mb-3" style={{ gap: 8 }}>
         <button className="btn-random" onClick={handleRandomize}>
           Sắp xếp ca trực ngẫu nhiên
         </button>
@@ -306,8 +174,9 @@ function App() {
                 <td>{ca}</td>
                 {days.map((_, dayIdx) => (
                   <td key={dayIdx}>
-                    - {schedule[caIdx][dayIdx][0]} <br/>
-                    - {schedule[caIdx][dayIdx][1]}
+                    - {schedule[caIdx][dayIdx][0]} <br />
+                    - {schedule[caIdx][dayIdx][1]} <br />
+                    - {schedule[caIdx][dayIdx][2]}
                   </td>
                 ))}
               </tr>
