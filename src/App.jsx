@@ -213,7 +213,7 @@ function App() {
             }}
             onClick={e => e.stopPropagation()}
           >
-            <img src={namblue} alt="Trung đội trưởng"  style={{  marginBottom: 16 }} />
+            <img src={namblue} alt="Trung đội trưởng" length="100" height= "100"  style={{  marginBottom: 16 }} />
             <h3 style={{ margin: 0, marginBottom: 8 }}>Trung đội trưởng</h3>
             <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}> Nam Blue</div>
             <div style={{ color: '#555', fontSize: 15, marginBottom: 16 }}>SĐT: 0336662425</div>
