@@ -184,6 +184,16 @@ function App() {
           </tbody>
         </table>
       </div>
+      <br /> <br /> <br /> <br />  
+      <div>
+        <footer>
+          <hr />
+          <p style={{ textAlign: 'center', fontSize: 12, color: '#666' }}>
+            &copy; 2025 - Bản quyền thuộc về: &nbsp; 
+             <a href="https://www.facebook.com/theanh24.it" target="_blank" rel="noopener noreferrer">Thế Anh</a>
+          </p>
+        </footer>
+      </div>
     </>
   )
 }
