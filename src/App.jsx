@@ -111,7 +111,7 @@ function useMobileLandscapeAlert() {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const isPortrait = window.innerHeight > window.innerWidth;
       if (isMobile && isPortrait) {
-        alert('Vui lòng xoay ngang màn hình để xem bảng trực rõ hơn!');
+       // alert('Vui lòng xoay ngang màn hình để xem bảng trực rõ hơn!');
       }
     }
     checkMobileAndOrientation();
