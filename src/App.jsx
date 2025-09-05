@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx'
 import './App.css'
 import namblue from './assets/img/namblue.png'
 import { Image } from 'antd';
+
 const thanhVien = [
   "Đức Quy", "Thế Anh", "Trung Hiếu", "Minh Thuận", "Duy Nam",
   "Hải Quân", "Xuân Trường", "Gia Huy", "Thành Công", "Tuấn Tú", "Anh Khoa",
@@ -38,11 +39,21 @@ const days = weekDays.map((label, i) => {
   date.setDate(monday.getDate() + i);
   return { label, date: formatDate(date) };
 });
-const caTimes = [
+
+// Ca trực cho 4 và 6 ca
+const caTimes4 = [
   "19h00 - 22h00",
   "22h00 - 1h00",
   "1h00 - 4h00",
   "4h00 - 6h30"
+];
+const caTimes6 = [
+  "19h00 - 20h30",
+  "20h30 - 22h30",
+  "22h30 - 00h30",
+  "00h30 - 2h30",
+  "2h30 - 4h30",
+  "4h30 - 6h30"
 ];
 
 // Hàm shuffle mảng
@@ -55,8 +66,8 @@ function shuffle(array) {
   return arr;
 }
 
-// Sinh lịch trực cho 2 tuần, mỗi tuần 12 người xen kẽ, mỗi ngày random ca trực không lặp lại
-function generateSchedule2Weeks() {
+// Sinh lịch trực cho 2 tuần, mỗi tuần chia nhóm xen kẽ, mỗi ngày random ca trực không lặp lại
+function generateSchedule2Weeks(caType = 4) {
   const now = new Date();
   const firstMonday = getMonday(new Date(now.getFullYear(), 0, 1));
   const weekNum = Math.floor((monday - firstMonday) / (7 * 24 * 60 * 60 * 1000));
@@ -74,23 +85,26 @@ function generateSchedule2Weeks() {
   }
 
   const evenWeek = weekNum % 2 === 0;
-  // Mỗi ca 3 người
+  let caTimes = caType === 4 ? caTimes4 : caTimes6;
+  let perCa = caType === 4 ? 3 : 2;
+  let perDay = caType === 4 ? 12 : 12; // 4*3=12, 6*2=12
+
   const schedule = Array.from({ length: caTimes.length }, () =>
-    Array.from({ length: days.length }, () => ["", "", ""])
+    Array.from({ length: days.length }, () => Array(perCa).fill(""))
   );
 
   for (let d = 0; d < days.length; d++) {
     const todayGroup = (evenWeek ? (d % 2 === 0 ? groupA : groupB) : (d % 2 === 0 ? groupB : groupA));
-    // Random lại thứ tự thành viên mỗi ngày để chia ca ngẫu nhiên, không lặp lại trong ngày
     const todayMembers = shuffle(todayGroup);
     for (let c = 0; c < caTimes.length; c++) {
-      schedule[c][d][0] = todayMembers[c * 3] || "";
-      schedule[c][d][1] = todayMembers[c * 3 + 1] || "";
-      schedule[c][d][2] = todayMembers[c * 3 + 2] || "";
+      for (let k = 0; k < perCa; k++) {
+        schedule[c][d][k] = todayMembers[c * perCa + k] || "";
+      }
     }
   }
   return schedule;
 }
+
 function useMobileLandscapeAlert() {
   useEffect(() => {
     function checkMobileAndOrientation() {
@@ -105,8 +119,12 @@ function useMobileLandscapeAlert() {
     return () => window.removeEventListener('resize', checkMobileAndOrientation);
   }, []);
 }
+
 function App() {
   useMobileLandscapeAlert();
+
+  // Chọn số ca trực
+  const [caType, setCaType] = useState(4);
 
   // Đọc lịch từ localStorage nếu có, nếu không thì tạo mới
   const getSavedSchedule = () => {
@@ -119,8 +137,16 @@ function App() {
 
   const [schedule, setSchedule] = useState(() => {
     const saved = getSavedSchedule();
-    return saved || generateSchedule2Weeks();
+    return saved || generateSchedule2Weeks(caType);
   });
+
+  useEffect(() => {
+    // Khi đổi số ca, random lại lịch
+    const newSchedule = generateSchedule2Weeks(caType);
+    setSchedule(newSchedule);
+    localStorage.setItem('lich_truc_schedule', JSON.stringify(newSchedule));
+    // eslint-disable-next-line
+  }, [caType]);
 
   // Khi lần đầu load, nếu chưa có lịch thì lưu lại
   useEffect(() => {
@@ -132,16 +158,16 @@ function App() {
 
   // Khi random lại thì lưu lịch mới vào localStorage
   const handleRandomize = () => {
-    // Xóa nhóm cũ để random lại nhóm mới cho 2 tuần tiếp theo
     localStorage.removeItem('lich_truc_groupA');
     localStorage.removeItem('lich_truc_groupB');
-    const newSchedule = generateSchedule2Weeks();
+    const newSchedule = generateSchedule2Weeks(caType);
     setSchedule(newSchedule);
     localStorage.setItem('lich_truc_schedule', JSON.stringify(newSchedule));
   };
 
   // Xuất file Excel
   const handleExportExcel = () => {
+    const caTimes = caType === 4 ? caTimes4 : caTimes6;
     const header = [
       ['CA TRỰC', 'Thời gian trực', ...days.map(d => `${d.label} ${d.date}`)]
     ];
@@ -149,7 +175,7 @@ function App() {
       `Ca ${caIdx + 1}`,
       ca,
       ...days.map((_, dayIdx) =>
-        `- ${schedule[caIdx][dayIdx][0]}\n- ${schedule[caIdx][dayIdx][1]}\n- ${schedule[caIdx][dayIdx][2]}`
+        schedule[caIdx][dayIdx].map((name, i) => `- ${name}`).join('\n')
       )
     ]);
     const wsData = [...header, ...rows];
@@ -159,12 +185,13 @@ function App() {
     XLSX.writeFile(wb, 'lich_truc.xlsx');
   };
 
-  //` Modal Trung đội trưởng
-
+  // Modal Trung đội trưởng
   const [showLeader, setShowLeader] = useState(false);
-
   const handleShowLeader = () => setShowLeader(true);
   const handleHideLeader = () => setShowLeader(false);
+
+  const caTimes = caType === 4 ? caTimes4 : caTimes6;
+  const perCa = caType === 4 ? 3 : 2;
 
   return (
     <>
@@ -174,6 +201,14 @@ function App() {
             <strong>Trung đội cơ động 2</strong>
           </h1>
           <div className="d-flex justify-content-center mb-3" style={{ gap: 8 }}>
+            <select
+              value={caType}
+              onChange={e => setCaType(Number(e.target.value))}
+              style={{ marginRight: 12, padding: '6px 12px', borderRadius: 4, fontWeight: 600 }}
+            >
+              <option value={4}>4 ca trực/ngày (mỗi ca 3 người)</option>
+              <option value={6}>6 ca trực/ngày (mỗi ca 2 người)</option>
+            </select>
             <button className="btn-random" onClick={handleRandomize}>
               Sắp xếp ca trực ngẫu nhiên
             </button>
@@ -260,9 +295,9 @@ function App() {
                 <td>{ca}</td>
                 {days.map((_, dayIdx) => (
                   <td key={dayIdx}>
-                    - {schedule[caIdx][dayIdx][0]} <br />
-                    - {schedule[caIdx][dayIdx][1]} <br />
-                    - {schedule[caIdx][dayIdx][2]}
+                    {schedule[caIdx] && schedule[caIdx][dayIdx] && schedule[caIdx][dayIdx].map((name, i) => (
+  name ? <span key={i}>- {name}<br /></span> : null
+))}
                   </td>
                 ))}
               </tr>
