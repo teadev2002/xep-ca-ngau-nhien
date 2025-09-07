@@ -123,51 +123,57 @@ function useMobileLandscapeAlert() {
 function App() {
   useMobileLandscapeAlert();
 
-  // Chọn số ca trực
-  const [caType, setCaType] = useState(4);
-
-  // Đọc lịch từ localStorage nếu có, nếu không thì tạo mới
-  const getSavedSchedule = () => {
+  // Đọc dữ liệu từ localStorage
+  const getSavedData = () => {
     try {
-      const data = localStorage.getItem('lich_truc_schedule');
-      if (data) return JSON.parse(data);
-    } catch {}
-    return null;
+      const schedule = localStorage.getItem('lich_truc_schedule');
+      const caType = localStorage.getItem('lich_truc_caType');
+      return {
+        schedule: schedule ? JSON.parse(schedule) : null,
+        caType: caType ? Number(caType) : 4
+      };
+    } catch {
+      return { schedule: null, caType: 4 };
+    }
   };
 
-  const [schedule, setSchedule] = useState(() => {
-    const saved = getSavedSchedule();
-    return saved || generateSchedule2Weeks(caType);
-  });
+  // Khởi tạo state từ localStorage
+  const savedData = getSavedData();
+  const [schedule, setSchedule] = useState(savedData.schedule || generateSchedule2Weeks(savedData.caType));
+  const [caType, setCaType] = useState(savedData.caType);
 
-  useEffect(() => {
-    // Khi đổi số ca, random lại lịch
-    const newSchedule = generateSchedule2Weeks(caType);
-    setSchedule(newSchedule);
-    localStorage.setItem('lich_truc_schedule', JSON.stringify(newSchedule));
-    // eslint-disable-next-line
-  }, [caType]);
+  // Modal Trung đội trưởng
+  const [showLeader, setShowLeader] = useState(false);
+  const handleShowLeader = () => setShowLeader(true);
+  const handleHideLeader = () => setShowLeader(false);
 
-  // Khi lần đầu load, nếu chưa có lịch thì lưu lại
-  useEffect(() => {
-    if (!getSavedSchedule()) {
-      localStorage.setItem('lich_truc_schedule', JSON.stringify(schedule));
-    }
-    // eslint-disable-next-line
-  }, []);
+  // Khi chọn loại ca, chỉ thay đổi state, chưa random lại lịch, và làm rỗng lịch trực
+  const handleChangeCaType = (e) => {
+    const newType = Number(e.target.value);
+    setCaType(newType);
+    // Tạo lịch rỗng với số ca và số người mỗi ca tương ứng
+    const caTimes = newType === 4 ? caTimes4 : caTimes6;
+    const perCa = newType === 4 ? 3 : 2;
+    const emptySchedule = Array.from({ length: caTimes.length }, () =>
+      Array.from({ length: days.length }, () => Array(perCa).fill(""))
+    );
+    setSchedule(emptySchedule);
+  };
 
-  // Khi random lại thì lưu lịch mới vào localStorage
+  // Khi random lại thì lưu lịch mới và loại ca vào localStorage
   const handleRandomize = () => {
     localStorage.removeItem('lich_truc_groupA');
     localStorage.removeItem('lich_truc_groupB');
+    localStorage.setItem('lich_truc_caType', caType);
     const newSchedule = generateSchedule2Weeks(caType);
     setSchedule(newSchedule);
     localStorage.setItem('lich_truc_schedule', JSON.stringify(newSchedule));
   };
 
   // Xuất file Excel
+  const caTimes = caType === 4 ? caTimes4 : caTimes6;
+  const perCa = caType === 4 ? 3 : 2;
   const handleExportExcel = () => {
-    const caTimes = caType === 4 ? caTimes4 : caTimes6;
     const header = [
       ['CA TRỰC', 'Thời gian trực', ...days.map(d => `${d.label} ${d.date}`)]
     ];
@@ -185,14 +191,6 @@ function App() {
     XLSX.writeFile(wb, 'lich_truc.xlsx');
   };
 
-  // Modal Trung đội trưởng
-  const [showLeader, setShowLeader] = useState(false);
-  const handleShowLeader = () => setShowLeader(true);
-  const handleHideLeader = () => setShowLeader(false);
-
-  const caTimes = caType === 4 ? caTimes4 : caTimes6;
-  const perCa = caType === 4 ? 3 : 2;
-
   return (
     <>
       <div>
@@ -203,7 +201,7 @@ function App() {
           <div className="d-flex justify-content-center mb-3" style={{ gap: 8 }}>
             <select
               value={caType}
-              onChange={e => setCaType(Number(e.target.value))}
+              onChange={handleChangeCaType}
               style={{ marginRight: 12, padding: '6px 12px', borderRadius: 4, fontWeight: 600 }}
             >
               <option value={4}>4 ca trực/ngày (mỗi ca 3 người)</option>
@@ -296,8 +294,8 @@ function App() {
                 {days.map((_, dayIdx) => (
                   <td key={dayIdx}>
                     {schedule[caIdx] && schedule[caIdx][dayIdx] && schedule[caIdx][dayIdx].map((name, i) => (
-  name ? <span key={i}>- {name}<br /></span> : null
-))}
+                      name ? <span key={i}>- {name}<br /></span> : <span key={i}>&nbsp;<br /></span>
+                    ))}
                   </td>
                 ))}
               </tr>
