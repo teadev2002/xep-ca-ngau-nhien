@@ -306,6 +306,8 @@ function App() {
         </table>
       </div>
 
+      <h1> Thành viên nhóm trực </h1>
+
       {/* Liệt kê nhóm thành viên và nút copy */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 32, margin: '32px 0' }}>
         {/* Nhóm 1 */}
