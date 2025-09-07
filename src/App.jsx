@@ -306,6 +306,50 @@ function App() {
         </table>
       </div>
 
+      {/* Liệt kê nhóm thành viên và nút copy */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 32, margin: '32px 0' }}>
+        {/* Nhóm 1 */}
+        <div style={{ flex: 1, background: '#f8f8f8', borderRadius: 8, padding: 16, boxShadow: '0 2px 8px #eee' }}>
+          <h4 style={{ textAlign: 'center', marginBottom: 8 }}>Nhóm 1</h4>
+          <ul style={{ paddingLeft: 18, marginBottom: 12, listStyleType: 'none' }}>
+            {JSON.parse(localStorage.getItem('lich_truc_groupB') || '[]').map((name, idx) => (
+              <li key={idx} style={{ fontWeight: 500 }}>{name}</li>
+            ))}
+          </ul>
+          <button
+            className="btn-random"
+            style={{ width: '100%' }}
+            onClick={() => {
+              const names = JSON.parse(localStorage.getItem('lich_truc_groupB') || '[]').join('\n');
+              navigator.clipboard.writeText(names);
+              alert('Đã sao chép nhóm 1');
+            }}
+          >
+            Copy nhóm 1
+          </button>
+        </div>
+        {/* Nhóm 2 */}
+        <div style={{ flex: 1, background: '#f8f8f8', borderRadius: 8, padding: 16, boxShadow: '0 2px 8px #eee' }}>
+          <h4 style={{ textAlign: 'center', marginBottom: 8 }}>Nhóm 2</h4>
+          <ul style={{ paddingLeft: 18, marginBottom: 12, listStyleType: 'none' }}>
+            {JSON.parse(localStorage.getItem('lich_truc_groupA') || '[]').map((name, idx) => (
+              <li key={idx} style={{ fontWeight: 500 }}>{name}</li>
+            ))}
+          </ul>
+          <button
+            className="btn-export"
+            style={{ width: '100%' }}
+            onClick={() => {
+              const names = JSON.parse(localStorage.getItem('lich_truc_groupA') || '[]').join('\n');
+              navigator.clipboard.writeText(names);
+               alert('Đã sao chép nhóm 2');
+            }}
+          >
+            Copy nhóm 2
+          </button>
+        </div>
+      </div>
+
       {/* Thống kê danh sách thành viên và số ca trực */}
       <div style={{ margin: '32px auto', maxWidth: 900 }}>
         <h3 style={{ textAlign: 'center', marginBottom: 16 }}>Thống kê số ca trực trong tuần</h3>
