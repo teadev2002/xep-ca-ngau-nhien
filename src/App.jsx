@@ -305,6 +305,54 @@ function App() {
           </tbody>
         </table>
       </div>
+
+      {/* Thống kê danh sách thành viên và số ca trực */}
+      <div style={{ margin: '32px auto', maxWidth: 900 }}>
+        <h3 style={{ textAlign: 'center', marginBottom: 16 }}>Thống kê số ca trực trong tuần</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1rem' }}>
+          <thead>
+            <tr style={{ background: '#ffe600' }}>
+              <th style={{ border: '1px solid #000', padding: '8px' }}>STT</th>
+              <th style={{ border: '1px solid #000', padding: '8px' }}>Tên thành viên</th>
+              <th style={{ border: '1px solid #000', padding: '8px' }}>Số ca trực</th>
+              <th style={{ border: '1px solid #000', padding: '8px' }}>Các ca đã trực</th>
+            </tr>
+          </thead>
+          <tbody>
+            {thanhVien.map((tv, idx) => {
+              // Tìm tất cả ca trực của thành viên này
+              let caTruc = [];
+              schedule.forEach((caArr, caIdx) => {
+                caArr.forEach((dayArr, dayIdx) => {
+                  dayArr.forEach((name, k) => {
+                    if (name === tv) {
+                      caTruc.push({
+                        ca: `Ca ${caIdx + 1}`,
+                        time: (caType === 4 ? caTimes4 : caTimes6)[caIdx],
+                        day: days[dayIdx].label + ' ' + days[dayIdx].date
+                      });
+                    }
+                  });
+                });
+              });
+              return (
+                <tr key={tv} style={{ background: idx % 2 === 0 ? '#f9f9f9' : '#fff' }}>
+                  <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center' }}>{idx + 1}</td>
+                  <td style={{ border: '1px solid #000', padding: '8px' }}>{tv}</td>
+                  <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center' }}>{caTruc.length}</td>
+                  <td style={{ border: '1px solid #000', padding: '8px' }}>
+                    {caTruc.map((c, i) => (
+                      <div key={i}>
+                        <strong>{c.ca}</strong> ({c.time}) - <span>{c.day}</span>
+                      </div>
+                    ))}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
       <br /> <br /> <br /> <br />
       <div>
         <footer>
