@@ -83,3 +83,33 @@
 .btn-leader:hover {
   background-color: #003ce0;
 }
+/* From Uiverse.io by Yaya12085 */ 
+.loader {
+  font-size: 30px;
+  display: flex;
+  gap: 10px;
+}
+.loader span {
+  display: flex;
+  align-items: center;
+  text-transform: capitalize;
+  justify-content: center;
+  font-family: sans-serif;
+  font-weight: bold;
+  color: #aa41fe;
+  background-color: #dbd5f3;
+  border-radius: 8px;
+  min-width: 40px;
+  animation: peek 1s both infinite;
+  animation-delay: var(--d);
+}
+
+@keyframes peek {
+  25% {
+    transform: rotateX(30deg) rotate(-13deg);
+  }
+  50% {
+    transform: translateY(-22px) rotate(3deg) scale(1.1);
+    color: #6a45ed;
+  }
+}
