@@ -860,7 +860,7 @@ function App() {
               onChange={handleChangeCaType}
               style={{ marginRight: 12, padding: '6px 12px', borderRadius: 4, fontWeight: 600 }}
             >
-              <option value={4}>4 ca trực/ngày (mỗi ca 3 người)</option>
+             
               <option value={6}>6 ca trực/ngày (mỗi ca 2 người)</option>
             </select>
             <button className="btn-random" onClick={handleRandomize}>
